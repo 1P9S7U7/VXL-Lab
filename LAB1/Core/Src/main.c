@@ -89,8 +89,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+ int cnt = 0;
   while (1)
   {
+	       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, cnt == 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, cnt == 1 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	       HAL_Delay(2000);
+	       cnt = 1 - cnt;
+   
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
