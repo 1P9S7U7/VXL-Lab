@@ -89,9 +89,49 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+ int state = 0;
+  int lastTime = HAL_GetTick();
+
   while (1)
   {
-    /* USER CODE END WHILE */
+      int curTime = HAL_GetTick();
+      int Time = curTime - lastTime;
+
+      switch (state)
+      {
+          case 0: // Đèn đỏ sáng 5 giây
+              HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+              HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_SET);
+              HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+              if (Time >= 5000)
+              {
+                  state = 1;
+                  lastTime = curTime;
+              }
+              break;
+
+          case 1: // Đèn vàng sáng 2 giây
+        	  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+        	  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+        	  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+              if (Time >= 2000)
+              {
+                  state = 2;
+                  lastTime = curTime;
+              }
+              break;
+
+          case 2: // Đèn xanh sáng 3 giây
+        	  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+        	  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_SET);
+        	  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+              if (Time >= 3000)
+              {
+                  state = 0;
+                  lastTime = curTime;
+              }
+              break;
+      }
 
     /* USER CODE BEGIN 3 */
   }
