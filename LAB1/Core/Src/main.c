@@ -235,19 +235,13 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  //int state = 0;
-  //int lastTime = HAL_GetTick();
-  //int cnt = 0;
+  int state = 0;
+  int lastTime = HAL_GetTick();
+  int cnt = 0;
   int cnt1 = 0;
   while (1)
   {
-	if(cnt1>=10) cnt1 = 0;
-	display7SEG1(cnt1++);
-	display7SEG(cnt1);
-	HAL_Delay(1000);
-
-
-      /*int curTime = HAL_GetTick();
+      int curTime = HAL_GetTick();
       int Time = curTime - lastTime;
 
       switch (state)
@@ -345,13 +339,12 @@ int main(void)
                   lastTime = curTime;
               }
               break;
-      }*/
+      }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
 
 /**
   * @brief System Clock Configuration
