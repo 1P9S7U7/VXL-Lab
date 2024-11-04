@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "software_timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,8 +48,8 @@ TIM_HandleTypeDef htim2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_TIM2_Init(void);
 static void MX_GPIO_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -81,6 +81,48 @@ void  display7SEG(int num){
 	    HAL_GPIO_WritePin(S5_GPIO_Port, S5_Pin, (segments & 0b00100000) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 	    HAL_GPIO_WritePin(S6_GPIO_Port, S6_Pin, (segments & 0b01000000) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 	}
+const int MAX_LED = 4;
+ int index_led = 0;
+ void update7SEG (int index, int num) {
+      switch ( index ) {
+        case 0:
+          // Display the first 7 SEG with led_buffer [0]
+     	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
+     	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
+     	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
+     	   display7SEG(num);
+     	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_RESET);
+          break ;
+        case 1:
+          // Display the second 7 SEG with led_buffer [1]
+     	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
+     	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
+     	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
+       	   display7SEG(num);
+        	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_RESET);
+          break ;
+        case 2:
+          // Display the third 7 SEG with led_buffer [2]
+     	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
+        	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
+        	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
+        	   display7SEG(num);
+        	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_RESET);
+          break ;
+        case 3:
+          // Display the forth 7 SEG with led_buffer [3]
+     	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
+        	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
+        	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
+        	   display7SEG(num);
+        	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_RESET);
+          break ;
+        default :
+          break ;
+       }
+  }
+ int counter = 200;
+ int cnt = 100;
 /* USER CODE END 0 */
 
 /**
@@ -111,8 +153,8 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_TIM2_Init();
   MX_GPIO_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT (& htim2 ) ;
 
@@ -120,8 +162,63 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int hour = 15 , minute = 8 , second = 50;
+  setTimer1(100);
+  setTimer2(50);
+  void updateClockBuffer (){
+	  if(timer1_flag == 1){
+		  setTimer1(100);
+		  HAL_GPIO_TogglePin(DOT_GPIO_Port, DOT_Pin);
+		  index_led++;
+		  if(index_led > 3){
+			  index_led = 0;
+		  }
+	  }
+	  switch (index_led){
+	  case 0:
+		  if(hour<10){
+			  update7SEG (0, 0);
+		  }
+		  if(hour>=10){
+			  update7SEG (0, hour/10);
+		  }
+		  break;
+	  case 1:
+		  update7SEG (1, hour%10);
+		  break;
+	  case 2:
+		  if(minute<10){
+			  update7SEG (2, 0);
+		  }
+		  if(minute>=10){
+			  update7SEG (2, minute/10);
+		  }
+		  break;
+	  case 3:
+		  update7SEG (3, minute%10);
+	      break;
+	  default:
+	      break;
+	  }
+   }
   while (1)
   {
+	  if(timer2_flag == 1){
+		  setTimer2(50);
+	      second ++;
+	  }
+	  if ( second >= 60) {
+		  second = 0;
+	      minute ++;
+	  }
+	  if( minute >= 60) {
+	      minute = 0;
+	      hour ++;
+	  }
+	  if( hour >=24) {
+	      hour = 0;
+	  }
+	  updateClockBuffer ();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -223,17 +320,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DOT_Pin|LED_RED_Pin|EN0_Pin|EN1_Pin
-                          |EN2_Pin|EN3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|ENM0_Pin|ENM1_Pin|DOT_Pin
+                          |LED_RED_Pin|EN0_Pin|EN1_Pin|EN2_Pin
+                          |EN3_Pin|ENM2_Pin|ENM3_Pin|ENM4_Pin
+                          |ENM5_Pin|ENM6_Pin|ENM7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, S0_Pin|S1_Pin|S2_Pin|S3_Pin
                           |S4_Pin|S5_Pin|S6_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : DOT_Pin LED_RED_Pin EN0_Pin EN1_Pin
-                           EN2_Pin EN3_Pin */
-  GPIO_InitStruct.Pin = DOT_Pin|LED_RED_Pin|EN0_Pin|EN1_Pin
-                          |EN2_Pin|EN3_Pin;
+  /*Configure GPIO pins : PA1 ENM0_Pin ENM1_Pin DOT_Pin
+                           LED_RED_Pin EN0_Pin EN1_Pin EN2_Pin
+                           EN3_Pin ENM2_Pin ENM3_Pin ENM4_Pin
+                           ENM5_Pin ENM6_Pin ENM7_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|ENM0_Pin|ENM1_Pin|DOT_Pin
+                          |LED_RED_Pin|EN0_Pin|EN1_Pin|EN2_Pin
+                          |EN3_Pin|ENM2_Pin|ENM3_Pin|ENM4_Pin
+                          |ENM5_Pin|ENM6_Pin|ENM7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -251,70 +354,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
- const int MAX_LED = 4;
- int index_led = 0;
- int led_buffer [4] = {1 , 2 , 3 , 4};
- void update7SEG ( int index ) {
-     switch ( index ) {
-       case 0:
-         // Display the first 7 SEG with led_buffer [0]
-    	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
-    	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
-    	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
-    	   display7SEG(led_buffer[0]);
-    	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_RESET);
-         break ;
-       case 1:
-         // Display the second 7 SEG with led_buffer [1]
-    	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
-    	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
-    	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
-      	   display7SEG(led_buffer[1]);
-       	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_RESET);
-         break ;
-       case 2:
-         // Display the third 7 SEG with led_buffer [2]
-    	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
-       	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
-       	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_SET);
-       	   display7SEG(led_buffer[2]);
-       	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_RESET);
-         break ;
-       case 3:
-         // Display the forth 7 SEG with led_buffer [3]
-    	   HAL_GPIO_WritePin ( EN1_GPIO_Port , EN1_Pin, GPIO_PIN_SET);
-       	   HAL_GPIO_WritePin ( EN2_GPIO_Port , EN2_Pin, GPIO_PIN_SET);
-       	   HAL_GPIO_WritePin ( EN0_GPIO_Port , EN0_Pin, GPIO_PIN_SET);
-       	   display7SEG(led_buffer[3]);
-       	   HAL_GPIO_WritePin ( EN3_GPIO_Port , EN3_Pin, GPIO_PIN_RESET);
-         break ;
-       default :
-         break ;
-      }
- }
-  int counter = 200;
-  int cnt = 100;
-  void HAL_TIM_PeriodElapsedCallback ( TIM_HandleTypeDef * htim )
-  {
-    counter--;
-    cnt--;
-    if(cnt<=0){
-    	cnt = 100;
-    	HAL_GPIO_TogglePin(DOT_GPIO_Port, DOT_Pin);
-    }
-    if( counter <= 0) {
-        counter = 200;
-    }
-    if(index_led > 3){
-    	index_led = 0;
-    }
-    update7SEG (index_led);
-    if(counter%50 == 0){
-    	index_led++;
-    }
-
-
- }
+void HAL_TIM_PeriodElapsedCallback ( TIM_HandleTypeDef * htim )
+ {
+   timerRun();
+}
 /* USER CODE END 4 */
 
 /**
@@ -350,4 +393,3 @@ void assert_failed(uint8_t *file, uint32_t line)
 #endif /* USE_FULL_ASSERT */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-
